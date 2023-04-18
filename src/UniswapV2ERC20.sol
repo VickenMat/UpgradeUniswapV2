@@ -79,7 +79,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         address from,
         address to,
         uint value
-    ) external returns (bool) {
+    ) external virtual returns (bool) {
         if (allowance[from][msg.sender] != uint(1)) {
             allowance[from][msg.sender] = allowance[from][msg.sender].sub(
                 value
@@ -97,7 +97,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external {
+    ) external virtual {
         require(deadline >= block.timestamp, "UniswapV2: EXPIRED");
         bytes32 digest = keccak256(
             abi.encodePacked(

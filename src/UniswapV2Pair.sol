@@ -62,22 +62,26 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         );
     }
 
-    event Mint(address indexed sender, uint amount0, uint amount1);
-    event Burn(
-        address indexed sender,
-        uint amount0,
-        uint amount1,
-        address indexed to
-    );
-    event Swap(
-        address indexed sender,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
+    function safeTransfer(address token, address to, uint value) external {
+        _safeTransfer(token, to, value);
+    }
+
+    // event Mint(address indexed sender, uint amount0, uint amount1);
+    // event Burn(
+    //     address indexed sender,
+    //     uint amount0,
+    //     uint amount1,
+    //     address indexed to
+    // );
+    // event Swap(
+    //     address indexed sender,
+    //     uint amount0In,
+    //     uint amount1In,
+    //     uint amount0Out,
+    //     uint amount1Out,
+    //     address indexed to
+    // );
+    // event Sync(uint112 reserve0, uint112 reserve1);
 
     constructor() public {
         factory = msg.sender;
@@ -98,7 +102,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         uint112 _reserve1
     ) private {
         require(
-            balance0 <= uint112(-1) && balance1 <= uint112(-1),
+            balance0 <= type(uint112).max && balance1 <= type(uint112).max,
             "UniswapV2: OVERFLOW"
         );
         uint32 blockTimestamp = uint32(block.timestamp % 2 ** 32);
@@ -116,6 +120,15 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         reserve1 = uint112(balance1);
         blockTimestampLast = blockTimestamp;
         emit Sync(reserve0, reserve1);
+    }
+
+    function update(
+        uint balance0,
+        uint balance1,
+        uint112 _reserve0,
+        uint112 _reserve1
+    ) external {
+        _update(balance0, balance1, _reserve0, _reserve1);
     }
 
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
@@ -284,5 +297,62 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
             reserve0,
             reserve1
         );
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint value
+    ) public virtual override(IUniswapV2Pair, UniswapV2ERC20) returns (bool) {
+        //     ) public override(IUniswapV2Pair, UniswapV2ERC20) returns (bool) {
+        require(balanceOf[from] >= value, "Insufficient balance");
+        require(allowance[from][msg.sender] >= value, "Insufficient allowance");
+
+        balanceOf[from] = balanceOf[from].sub(value);
+        balanceOf[to] = balanceOf[to].add(value);
+        allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
+
+        emit Transfer(from, to, value);
+
+        return true;
+    }
+
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external override(IUniswapV2Pair, UniswapV2ERC20) {
+        //     ) external override(IUniswapV2Pair, UniswapV2ERC20) {
+        require(
+            deadline >= block.timestamp,
+            "UniswapV2ERC20: expired deadline"
+        );
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(
+                    abi.encode(
+                        PERMIT_TYPEHASH,
+                        owner,
+                        spender,
+                        value,
+                        nonces[owner]++,
+                        deadline
+                    )
+                )
+            )
+        );
+        address recoveredAddress = ecrecover(digest, v, r, s);
+        require(
+            recoveredAddress != address(0) && recoveredAddress == owner,
+            "UniswapV2ERC20: invalid signature"
+        );
+        allowance[owner][spender] = value;
+        emit Approval(owner, spender, value);
     }
 }
