@@ -6,6 +6,7 @@ import "../interfaces/IUniswapV2Factory.sol";
 // import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "../interfaces/IUniswapV2Router02.sol";
 import "../libraries/UniswapV2Library.sol";
+import "../libraries/TransferHelper.sol";
 import "../libraries/SafeMath.sol";
 import "../interfaces/IERC20.sol";
 import "../interfaces/IWETH.sol";
@@ -216,7 +217,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         bytes32 s
     ) external virtual override returns (uint amountA, uint amountB) {
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
-        uint value = approveMax ? uint(-1) : liquidity;
+        uint value = approveMax ? uint(1) : liquidity;
         IUniswapV2Pair(pair).permit(
             msg.sender,
             address(this),
@@ -250,7 +251,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         bytes32 s
     ) external virtual override returns (uint amountToken, uint amountETH) {
         address pair = UniswapV2Library.pairFor(factory, token, WETH);
-        uint value = approveMax ? uint(-1) : liquidity;
+        uint value = approveMax ? uint(1) : liquidity;
         IUniswapV2Pair(pair).permit(
             msg.sender,
             address(this),
@@ -310,7 +311,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         bytes32 s
     ) external virtual override returns (uint amountETH) {
         address pair = UniswapV2Library.pairFor(factory, token, WETH);
-        uint value = approveMax ? uint(-1) : liquidity;
+        uint value = approveMax ? uint(1) : liquidity;
         IUniswapV2Pair(pair).permit(
             msg.sender,
             address(this),
