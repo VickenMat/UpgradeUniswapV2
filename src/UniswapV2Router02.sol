@@ -11,18 +11,20 @@ import "../libraries/SafeMath.sol";
 import "../interfaces/IERC20.sol";
 import "../interfaces/IWETH.sol";
 
-contract UniswapV2Router02 is IUniswapV2Router02 {
+// abstract added below
+abstract contract UniswapV2Router02 is IUniswapV2Router02 {
     using SafeMath for uint;
 
-    address public immutable factory;
-    address public immutable override WETH;
+    // CHANGES WERE MADE ON THE LINES BELOW
+    address immutable factory;
+    address immutable WETH;
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, "UniswapV2Router: EXPIRED");
         _;
     }
 
-    constructor(address _factory, address _WETH) public {
+    constructor(address _factory, address _WETH) {
         factory = _factory;
         WETH = _WETH;
     }

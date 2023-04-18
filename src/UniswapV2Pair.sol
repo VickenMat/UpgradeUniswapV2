@@ -303,7 +303,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         address from,
         address to,
         uint value
-    ) public virtual override(IUniswapV2Pair, UniswapV2ERC20) returns (bool) {
+    ) public override(IUniswapV2Pair, UniswapV2ERC20) returns (bool) {
         //     ) public override(IUniswapV2Pair, UniswapV2ERC20) returns (bool) {
         require(balanceOf[from] >= value, "Insufficient balance");
         require(allowance[from][msg.sender] >= value, "Insufficient allowance");
